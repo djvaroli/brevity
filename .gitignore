@@ -1,0 +1,7 @@
+*.pyc
+
+# data
+data/
+
+# env files
+.env
