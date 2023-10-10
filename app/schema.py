@@ -1,13 +1,13 @@
 from pydantic import BaseModel
 
-from .prompts import SummaryLength, Summary
+from .prompts import Summary, SummaryLength
 
 
 # model_name is string to avoid circular imports
 # summary parameters will not be accessed outside of endpoint
 # while AIModel will be used outside
 class SummaryParameters(BaseModel):
-    url: str 
+    url: str
     model_name: str = "gpt-3.5-turbo"
     summary_length: SummaryLength = SummaryLength.SHORT
 

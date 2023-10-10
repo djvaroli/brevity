@@ -1,12 +1,9 @@
-
+import json
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
-import json
-
-from dataclasses import dataclass
 
 from .display import print_to_console
-
 
 _DEFAULT_COD_TEMPLATE = """
 Article: {text}
@@ -106,50 +103,49 @@ class SummaryLength(str, Enum):
         lengt_to_words = {
             SummaryLength.SHORT: "80",
             SummaryLength.MEDIUM: "160",
-            SummaryLength.LONG: "320"
+            SummaryLength.LONG: "320",
         }
-        
+
         n_words = lengt_to_words.get(summary_length, None)
-        
+
         if n_words is None:
             raise ValueError("Invalid summary length.")
-        
+
         return n_words
 
 
 class SummarizationPrompt:
     def __call__(self, text: str) -> Any:
         return text
-    
+
     def make(self, text: str) -> Any:
         return self(text)
-    
+
     def extract_summary(self, text: str) -> Summary:
         return Summary(title="Title", content=text)
-    
+
 
 class ChainOfDensityPrompt(SummarizationPrompt):
     def __init__(
         self,
         summary_length: SummaryLength = SummaryLength.SHORT,
-        template: str = _DEFAULT_COD_TEMPLATE
+        template: str = _DEFAULT_COD_TEMPLATE,
     ) -> None:
         self.template = template
         self.summary_length = summary_length
 
     def __call__(
-        self, 
+        self,
         text: str,
     ) -> str:
         return self.template.format(
             text=text,
             n_sentences=self.summary_length.value,
-            n_words=SummaryLength.estimate_length_in_words(self.summary_length)
+            n_words=SummaryLength.estimate_length_in_words(self.summary_length),
         )
 
     def extract_summary(self, model_response: str) -> Summary:
-        """
-        """
+        """ """
         # expected output format is a dictionary with keys "Missing_Entities" and "Denser_Summary"
         # we want the last output
         print_to_console(model_response)
@@ -160,7 +156,9 @@ class ChainOfDensityPrompt(SummarizationPrompt):
         except json.JSONDecodeError as e:
             raise RuntimeError("Model output could not be decoded.") from e
         except KeyError as e:
-            raise KeyError("Model output does is missing ``Denser_Summary`` key.") from e
+            raise KeyError(
+                "Model output does is missing ``Denser_Summary`` key."
+            ) from e
 
         return Summary(title="Title", content=summary)
 
@@ -169,24 +167,23 @@ class JoinSummariesPrompt(SummarizationPrompt):
     def __init__(
         self,
         summary_length: SummaryLength = SummaryLength.MEDIUM,
-        template: str = _DEFUAULT_JOIN_SUMMARIES_TEMPLATE
+        template: str = _DEFUAULT_JOIN_SUMMARIES_TEMPLATE,
     ) -> None:
         self.template = template
         self.summary_length = summary_length
-    
+
     def __call__(
-        self, 
+        self,
         text: str,
     ) -> str:
         return self.template.format(
             text=text,
             n_sentences=self.summary_length.value,
-            n_words=SummaryLength.estimate_length_in_words(self.summary_length)
+            n_words=SummaryLength.estimate_length_in_words(self.summary_length),
         )
 
     def extract_summary(self, model_response: str) -> Summary:
-        """
-        """
+        """ """
         # expected output format is a dictionary with keys "Missing_Entities" and "Denser_Summary"
         # we want the last output
         try:
@@ -196,6 +193,8 @@ class JoinSummariesPrompt(SummarizationPrompt):
         except json.JSONDecodeError as e:
             raise json.JSONDecodeError("Model output could not be decoded.") from e
         except KeyError as e:
-            raise KeyError("Model output does is missing ``Denser_Summary`` or ``Title`` key.") from e
+            raise KeyError(
+                "Model output does is missing ``Denser_Summary`` or ``Title`` key."
+            ) from e
 
         return Summary(title=title, content=summary)
