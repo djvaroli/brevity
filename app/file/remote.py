@@ -1,22 +1,19 @@
+import random
+import string
 from pathlib import Path
 from typing import Dict, Optional
-import string
-import random
 
 import requests
 import textract
 
 
-def gen_random_string(
-    choices: str = string.ascii_lowercase,
-    length: int = 10
-) -> str:
+def gen_random_string(choices: str = string.ascii_lowercase, length: int = 10) -> str:
     """Generate a random file name to avoid collisions.
 
     Args:
         choices (str, optional): characters to choose from. Defaults to ``string.ascii_lowercase``.
         length (int, optional): length of the random string. Defaults to 10.
-    
+
     Returns:
         str: random file name.
     """
@@ -30,17 +27,15 @@ class RemoteFile:
         delete: delete the file.
         download: download the file.
         extract_text: extract text from the file.
-    
+
     Attributes:
         url: URL of the remote file.
         extension: file extension.
         name: file name.
         stem: file name without the extension.
     """
-    def __init__(
-        self,
-        url: str
-    ) -> None:
+
+    def __init__(self, url: str) -> None:
         """Create a new RemoteFile instance.
 
         Args:
@@ -66,17 +61,17 @@ class RemoteFile:
         response.raise_for_status()
         with open(self._local_path, "wb") as f:
             f.write(response.content)
-        
+
         self._is_downloaded = True
-    
+
     @property
     def _url_path(self) -> Path:
         return Path(self.url)
-    
+
     @property
     def extension(self) -> str:
         return self._url_path.suffix
-    
+
     @property
     def name(self) -> str:
         return self._url_path.name
@@ -84,7 +79,7 @@ class RemoteFile:
     @property
     def stem(self) -> str:
         return self._url_path.stem
-    
+
     def extract_text(self) -> str:
         """Extract text from the file.
 
